@@ -1,0 +1,47 @@
+
+
+
+{%extends 'base.html'%}
+
+{% block content %}
+<div class="row justify-content-center">
+	<div class="col-6">
+		<div class="card">
+			<div class="card-body">
+
+<table class="table">
+		<thead class="thead-dark">
+			<tr>
+				<div class="row justify-content-center">
+				<h2>Products</h2>
+			</div>
+			</tr>
+		</thead>
+
+		<tbody>
+
+	
+	{% for i in products %}
+	<tr><div class="row justify-content-center">
+		<td>
+
+  <input type="checkbox" name="product[]" value="{{i}}">{{i}}<br>
+  </td>
+  <div class="row justify-content-center">
+	</tr>
+	
+	{% endfor %}
+	</tbody>
+
+	</table>
+	{% csrf_token %}
+	<br><br>
+	<input type="submit" value="Subscribe">
+	</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+{%endblock%}
+

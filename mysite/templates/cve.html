@@ -1,0 +1,31 @@
+
+
+{%extends 'base.html'%}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+	<div class="col-6">
+		<div class="card">
+			<div class="card-body">
+				<div class="row justify-content-center">
+<p>Welcome to <strong>Patch Reminder CVE search</strong>
+<br>
+
+	<form method="POST" action="/add_prod/">
+		{% csrf_token %}
+		<input type="text" name="cve_search">
+		
+		<input type="submit" value="search">
+	</form>
+<div class="row justify-content-center">
+{% if data %}
+{{data}}
+{% endif %}
+</div>
+</div>
+</div>
+</div>
+{%endblock%}

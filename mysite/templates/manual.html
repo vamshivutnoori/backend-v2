@@ -1,0 +1,32 @@
+{%extends 'base.html'%}
+
+{% block content %}
+<div class="row justify-content-center">
+	<div class="col-6">
+		<div class="card">
+			<div class="card-body">
+				<div class="row justify-content-center">
+					<p>Input format: <strong> 'Product name'</strong> space <strong>'version number'</strong></p>
+				</div>
+
+	<form method="POST" action="/add_prod/">
+		{% csrf_token %}
+		<div class="row justify-content-center">
+		Manually add a product : &nbsp;&nbsp;
+		
+		<input type="text"  name="productz">
+		<input type="submit" value="Add">
+	</div>
+	</form>
+	
+
+</div>
+</div>
+</div>
+</div>
+{%endblock%}
+
+
+
+
+

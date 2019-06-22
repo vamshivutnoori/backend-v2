@@ -1,0 +1,47 @@
+{%extends 'base.html'%}
+
+{% block content %}
+
+<div class="row justify-content-center">
+	<div class="col-6">
+		<div class="card">
+			<div class="card-body">
+<h1>Your Subscriptions</h1>
+<form method="POST">
+
+<div style="margin:5%">
+
+
+
+	<table class="table">
+		<thead class="thead-dark">
+			<tr>
+			</tr>
+		</thead>
+
+		<tbody>
+				{% for i in subscriptions %}
+	<tr>
+		<td>
+  <input type="checkbox" name="subscriptions[]" value="{{i}}">{{i}}<br>
+  </td>
+	</tr>
+	
+	{% endfor %}
+		</tbody>
+	</table>
+
+
+	{% csrf_token %}
+	<input type="submit" value="Unsubscribe">
+	</div>
+
+</form>
+
+</div>
+</div>
+</div>
+</div>
+{%endblock%}
+
+
