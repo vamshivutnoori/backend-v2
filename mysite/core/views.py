@@ -2,8 +2,10 @@ from django.shortcuts import render,redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, authenticate
 from django.http import HttpResponse
 from .models import Products, Subscribers
+from django.contrib.sites.shortcuts import get_current_site
 import csv, io
 from background_task import background
 from django.core.mail import EmailMessage
@@ -11,7 +13,13 @@ import os
 # Create your views here.
 from urllib import request
 import datetime
+from .forms import UserRegistrationForm
 
+
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.template.loader import render_to_string
+from .tokens import account_activation_token
 url='https://cve.mitre.org/data/downloads/allitems.csv'
 
     
@@ -96,16 +104,95 @@ def home(request):
 
 def signup(request):
 	if request.method=='POST':
-		form=UserCreationForm(request.POST)
+		form=UserRegistrationForm(request.POST)
 		if form.is_valid():
-			form.save()
-			return redirect('home')
+			save_it = form.save(commit=False)
+			save_it.is_active = False
+			save_it.save()
+			
+			current_site=get_current_site(request)
+			reciever=[save_it.email]
+			subject='Thanks for Registering to patch remainder'
+			message = render_to_string('acc_active_email.html', {
+                'user': save_it,
+                'domain': current_site.domain,
+                'uid':urlsafe_base64_encode(force_bytes(save_it.pk)),
+                'token':account_activation_token.make_token(save_it),
+            })
+			email=EmailMessage(subject,message,to=reciever)
+			email.send()
+			success = True
+			return render(request,'confirm.html')
+			#user.is_active = False
+			#user.save()            
+
 	else:
-		form = UserCreationForm()
+		form = UserRegistrationForm()
 	return render(request,
 		'registration/signup.html',
 		{'form':form}
 		) 
+
+
+
+def activate(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        # return redirect('home')
+        return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
+    else:
+        return HttpResponse('Activation link is invalid!')
+
+
+
+def send_account_activation_email(request, user):
+    text_content = 'Account Activation Email'
+    subject = 'Email Activation'
+    template_name = "emails/account/activation.html"
+    from_email = settings.DEFAULT_FROM_EMAIL
+    recipients = [user.email]
+    kwargs = {
+        "uidb64": urlsafe_base64_encode(force_bytes(user.pk)).decode(),
+        "token": default_token_generator.make_token(user)
+    }
+    activation_url = reverse("app:activate_user_account", kwargs=kwargs)
+
+    activate_url = "{0}://{1}{2}".format(request.scheme, request.get_host(), activation_url)
+
+    context = {
+        'user': user,
+        'activate_url': activate_url
+    }
+    html_content = render_to_string(template_name, context)
+    email = EmailMultiAlternatives(subject, text_content, from_email, recipients)
+    email.attach_alternative(html_content, "text/html")
+    email.send()
+
+
+
+
+def activate_user_account(request, uidb64=None, token=None):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except User.DoesNotExist:
+        user = None
+    if user and default_token_generator.check_token(user, token):
+        user.is_email_verified = True
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return redirect('hr:user_profile')
+    else:
+        return HttpResponse("Activation link has expired")
+
 
 @login_required
 def direct_sub(request):

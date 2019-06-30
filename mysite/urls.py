@@ -13,6 +13,7 @@ urlpatterns = [
 	path('subscriptions/',views.subscriptions,name='subscriptions'),
 	path('manual_sub/',views.direct_sub,name='manual_sub'),	
 	path('add_prod/',views.add_prod,name="add_prod"),
+    path('activate/<uidb64>/<token>/',views.activate,name='activate'),
 
 ]
 
